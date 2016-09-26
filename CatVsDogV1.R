@@ -12,23 +12,23 @@ library(glmnet)
 library(EBImage)
 
 # Functions
-folderToDataFrame <- function(folder.name, num.files = -1, size = c(100,100)){
+folderToDataFrame <- function(folder.name, subset.files = c(), size = c(100,100)){
 	# Transforms a list of jpeg files in the folder, folder.name, into a dataframe
 	#  with each image as a row and each column as a pixel.
 	#
 	# Args:
 	#   folder.name: Name of folder in which image files are located.
-	#   num.files: Number of files to be read in. If left blank all files are used.
+	#   subset.files: Index vector of files to be used. If left blank, all files used.
 	#   size: A 2-dimensional vector giving the height and width to which each image
 	#    should be resized.
 	#
 	# Returns:
 	#   A dataframe with rows corresponding to images and columns corresponding to pixels.
 	# Get list of file names.
-	if (num.files == -1){
+	if (length(subset.files) == 0){
 		file.names <- list.files(folder.name, pattern = "*.jpg", full.names = TRUE)
-	} else if (num.files > 0){
-		file.names <- list.files(folder.name, pattern = "*.jpg", full.names = TRUE)[1:num.files]
+	} else {
+		file.names <- list.files(folder.name, pattern = "*.jpg", full.names = TRUE)[subset.files]
 	}
 	data <- lapply(file.names, readImage)  # Read each image
 	data <- lapply(data, resize, h = size[1], w = size[2])  # Resize each image
@@ -44,6 +44,5 @@ folderToDataFrame <- function(folder.name, num.files = -1, size = c(100,100)){
 # Set working directory
 setwd('/Users/kevinoconnor/Documents/Kaggle Competitions/CatVsDog/Kaggle-CatVsDog')
 # Read in training data
-train.data <- folderToDataFrame("train", num.files = 10)
+train.data <- folderToDataFrame("train", subset.files = c(1:10, 24991:25000))
 # Running sparse logistic regression
-
