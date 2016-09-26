@@ -4,7 +4,7 @@
 # Date Created: 09/25/16
 # Date Modified: 09/25/16
 
-# README: This version will use logistic regression to produce a probability for each image.
+# README: This version will use sparse logistic regression to produce a probability for each image.
 
 # Libraries
 library(jpeg)
