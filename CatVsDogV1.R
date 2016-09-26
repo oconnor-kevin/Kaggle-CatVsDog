@@ -23,13 +23,16 @@ folderToDataFrame <- function(folder.name, subset.files = c(), size = c(100,100)
 	#    should be resized.
 	#
 	# Returns:
-	#   A dataframe with rows corresponding to images and columns corresponding to pixels.
-	# Get list of file names.
+	#   A dataframe where the rows correspond to an individual image, the first 
+	#    column corresponds to the label, and the other columns correspond to 
+	#    pixels. 
+	# Get list of file names. 
 	if (length(subset.files) == 0){
 		file.names <- list.files(folder.name, pattern = "*.jpg", full.names = TRUE)
 	} else {
 		file.names <- list.files(folder.name, pattern = "*.jpg", full.names = TRUE)[subset.files]
 	}
+	labels <- as.numeric(grepl("dog", file.names))  # Create labels vector
 	data <- lapply(file.names, readImage)  # Read each image
 	data <- lapply(data, resize, h = size[1], w = size[2])  # Resize each image
 	data <- lapply(data, channel, mode = "gray")  # Convert each image to grayscale
@@ -37,6 +40,7 @@ folderToDataFrame <- function(folder.name, subset.files = c(), size = c(100,100)
 	data <- lapply(data, as.vector)  # Coerce each image to vector
 	data <- data.frame(data)  # Combine to dataframe
 	data <- t(data)  # Transpose
+	data <- cbind(labels, data)  # Append labels
 	return(data)
 }
 
@@ -44,5 +48,10 @@ folderToDataFrame <- function(folder.name, subset.files = c(), size = c(100,100)
 # Set working directory
 setwd('/Users/kevinoconnor/Documents/Kaggle Competitions/CatVsDog/Kaggle-CatVsDog')
 # Read in training data
-train.data <- folderToDataFrame("train", subset.files = c(1:10, 24991:25000))
-# Running sparse logistic regression
+train.data <- folderToDataFrame("train", subset.files = c(1:1000, 24001:25000))
+# Fitting sparse logistic model
+model <- cv.glmnet(train.data[, -1], train.data[, 1], family = "binomial", type.measure = "class")
+# Reading in test data
+test.data <- folderToDataFrame("test", subset.files = sample(1:12500, 1000))
+predictions <- as.vector(predict(model, newx = test.data[, -1], s = "lambda.min", type = "class"))
+sum(predictions != test.data[, 1]) / length(predictions)  # Outputting error rate
